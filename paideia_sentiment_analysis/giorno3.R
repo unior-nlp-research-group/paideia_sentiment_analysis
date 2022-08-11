@@ -10,15 +10,22 @@ library(stopwords)
 library(R.utils)
 library(tm)
 require(data.table)
+library(readxl)
 
 #ricarichiamo il nostro file di testo
-review <- read.csv(file='review')
-testi_full <- review$review_text
-stars <- review$review_stars
+my_data <- read_excel("../materiali/dataset.xlsx")
+my_data <- data.frame(my_data)
+my_data$Style[my_data$Style == "positivr"] = "positive"
+
 sw <- stopwords("it")
 
-tokens_full_list <- tokenize_words(testi_full)
-tokens_full <- unlist(tokens_full_list)
+testi <- my_data$Text
+style <- my_data$Style
+
+#tokenizzazione
+tokens_full <- tokenize_words(testi)
+
+tokens_full <- tokens_full[!tokens_full %in% sw]
 
 #link nrc
 # http://saifmohammad.com/WebPages/AccessResource.htm
@@ -45,27 +52,31 @@ nrc_table[nrc_table["Italian-it"] == 'fiducioso',]$Valence[1]
 
 #calcoliamo il valore per una frase esemplificativa
 
-frase <- c("Sono molto fiducioso per il futuro")
+frase <- c("Sono molto fiducioso per il futuro, anche se mi sento un po' preoccupato a causa degli ultimi avvenimenti")
 tokens_frase <- tokenize_words(frase)
 tokens_frase <- unlist(tokens_frase)
 tokens_frase <- tokens_frase[!tokens_frase %in% sw]
-
+tokens_frase
 
 nrc_table[is.element(nrc_table$`Italian-it`, tokens_frase),]
-mean(nrc_table[is.element(nrc_table$`Italian-it`, tokens_frase),]$Valence)
 
-#scriviamo una funzione per calcolare il valore di valenza data una frase
+sentiment_values <- nrc_table[is.element(nrc_table$`Italian-it`, tokens_frase),]$Valence
+sentiment_values
+
+
+#**scriviamo una funzione per calcolare il valore di valenza data una frase**
 
 calcolare_sentiment_nrc <- function(frase_input){
   tokens <- unlist(tokenize_words(frase_input))
   tokens_clean <- tokens[!tokens %in% sw]
-  return(mean(nrc_table[is.element(nrc_table$`Italian-it`, tokens_clean),]$Valence))
+  sentiment_values <- nrc_table[is.element(nrc_table$`Italian-it`, tokens_clean),]$Valence
+  return(mean(sentiment_values))
 }
-sentiment_values <- unlist(lapply(testi_full, calcolare_sentiment_nrc))
+sentiment_values <- unlist(lapply(testi, calcolare_sentiment_nrc))
 sentiment_values[is.na(sentiment_values)] <- 0
 
 sentiment_values_dataframe <- data.frame(
-  testi_full, sentiment_values
+  testi, sentiment_values
 )
 head(sentiment_values_dataframe)
 sentiment_values_dataframe  <- sentiment_values_dataframe[
@@ -107,19 +118,24 @@ ggplot(sentiment_values_dataframe, aes(x=index, y=sentiment_values))+
   coord_flip()
                     
 
-#correlazione tra questa sentiment e le review
+#correlazione tra la sentiment calcolata e le statistiche del dataset
 sentiment_values_dataframe <- data.frame(
- sentiment_values, stars
+ sentiment_values, style
 )
 
-ggplot(sentiment_values_dataframe, aes(x=stars, y=sentiment_values)) +
+ggplot(sentiment_values_dataframe, aes(x=style, y=sentiment_values)) +
   geom_point()
 
 # controlliamo quali testi presentano problematiche
 
-errori <- sentiment_values_dataframe[
-  sentiment_values_dataframe$stars == 1 &
+incongruenze <- sentiment_values_dataframe[
+  sentiment_values_dataframe$style == 'negative' &
     sentiment_values_dataframe$sentiment_values >= 0.25
 ,]
 
-length(sentiment_values)
+incongruenze
+tokens_full[67]
+
+
+# **esaminare i risultati con un altro lessico**
+# **esaminare quali parole creano le incongruenze tra i risultati**

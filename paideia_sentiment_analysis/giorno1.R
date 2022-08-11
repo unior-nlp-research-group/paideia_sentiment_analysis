@@ -27,8 +27,6 @@ my_data$Style[my_data$Style == "positivr"] = "positive"
 
 testi <- my_data$Text
 
-
-
 #tokenizzazione
 tokens <- tokenize_words(testi)
 length(tokens)
@@ -120,3 +118,15 @@ wordcloud(words = freq_lemmi$lemmi, freq = freq_lemmi$Freq, min.freq = 1,
           colors=brewer.pal(8, "Dark2"))
 
 # **aggiungiamo punteggiatura e altre stop word per avere risultati migliori**
+
+# espressioni regolari
+# https://regex101.com/
+
+testi[2]
+str_extract(testi[2], regex("raccontar[a-z]*"))
+
+pattern = regex("#[A-Za-z0-9àèéòìù]*")
+str_extract(testi, pattern)
+
+# **quanti testi presentano hashtag?**
+# **quali sono gli hashtag più utilizzati?**
