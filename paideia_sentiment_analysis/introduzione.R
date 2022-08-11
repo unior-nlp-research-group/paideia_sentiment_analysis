@@ -1,16 +1,16 @@
 # scarichiamo le librerie necessarie per il corso
 
 librerie <- c('tidyverse',
-              'wordcloud',
               'tokenizers',
-              'RColorBrewer',
-              'SnowballC',
               'udpipe',
               'tm',
               'stopwords',
               'R.utils',
               "tidytext",
-              'textdata')
+              'textdata',
+              "readxl",
+              "parallel",
+              "future.apply")
 librerie_nuove <- librerie[!(librerie %in% installed.packages()[,"Package"])]
 if(length(librerie_nuove)>0)
   install.packages(librerie_nuove)
@@ -87,7 +87,7 @@ numer_interi <- integer(8)
 x <- c()
 
 #vettore personalizzato
-x <- c("Gennaro", "Mariapia")
+x <- c("Mariapia", "Gennaro")
 
 #aggiungere elementi
 y <- c(x, "Felice")
@@ -99,7 +99,7 @@ print(z)
 serie <- 1:10
 
 #recuperare elementi dai vettori
-numeri_pari <- seq(from=1, to=100, by=2)
+numeri_pari <- seq(from=0, to=100, by=2)
 numeri_pari[12]
 
 #dataframe
