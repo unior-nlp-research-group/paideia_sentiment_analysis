@@ -1,5 +1,5 @@
 # Scuola Estiva sul Metodo e la Ricerca Sociale 2022
-## Sentiment Analysis per le SCienze Sociali
+## Sentiment Analysis per le Scienze Sociali
 
 - Maria Pia di Buono (ricercatrice presso Università degli Studi di Napoli "L'Orientale")
 - Gennaro Nolano (dottorando presso Università degli studi di Napoli "L'Orientale")
