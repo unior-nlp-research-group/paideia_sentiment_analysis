@@ -11,9 +11,6 @@ library(readxl)
 #ricarichiamo il nostro file di testo
 my_data <- read_excel("../materiali/dataset.xlsx")
 my_data <- data.frame(my_data)
-my_data$Style[my_data$Style == "positivr"] = "positive"
-
-sw <- stopwords("it")
 
 testi <- my_data$Text
 
@@ -21,147 +18,85 @@ testi <- my_data$Text
 tokens_full <- tokenize_words(testi)
 tokens_full <- unlist(tokens_full)
 
-tokens_full <- tokens_full[!tokens_full %in% sw]
 class(tokens_full)
 
-# recuperiamo testi a partire da valutazioni specifiche
+# ottenere la frequenza dei token
+freq_parole <- as.data.frame(table(tokens_full))
 
-# quali valutazioni sono presenti nel dataset?
-table(my_data$Style)
+# esaminare una parola di interesse
+parola_di_interesse <- "di"
+tokens==parola_di_interesse
+num_occorrenze <- freq_parole[freq_parole$tokens_full == parola_di_interesse,]
 
-my_data$Style <- ifelse(is.na(my_data$Style),
-                        "not applicable",
-                        my_data$Style)
+num_occorrenze$Freq
+
+# ordiniamo le parole per numero di occorrenze
+freq_parole_ordinate <- freq_parole[order(-freq_parole$Freq),]
+# guardiamo le parole più frequenti
+head(freq_parole_ordinate,10)
+
+#pulizia del testo
+
+#testo in minuscolo
+test <- my_data$Text[12]
+print(test)
+print(tolower(test))
+
+#stopword
+sw <- stopwords("it")
+head(sw, 10)
+
+tokens_clean <- tokens[!tokens_full %in% sw]
+
+freq_parole <- as.data.frame(table(tokens_clean))
+freq_parole_ordinate <- freq_parole[order(-freq_parole$Freq),]
+head(freq_parole_ordinate,10)
+
+# **aggiungiamo punteggiatura e altre stop word per ottenere risultati migliori**
 
 
-# raccogliamo i testi per le valutazioni = positive
-testi_positive <- my_data[my_data$Style=="positive",]$Text
-head(testi_positive,10)
+#lemmatizzazione
 
-tokens_positive <- unlist(tokenize_words(testi_positive))
-class(tokens_positive)
-tokens_positive <- tokens_positive[!tokens_positive %in% sw]
+ud_model <- udpipe_download_model(language = "italian", overwrite = F)
+ud_it <- udpipe_load_model(ud_model)
 
-head(as.data.frame(table(tokens_positive)))
 
-#creiamo un dataframe che per ogni coppia parola-classe ci mostra la frequenza
+# scriviamo una funzione per lemmatizzare
+#prima inseriamo una colonna per identificare gli id dei testi nel dataframe
+my_data$id <- seq(1:nrow(my_data))
 
-total_tokens <- length(tokens_full)
-total_tokens
-
-as.data.frame(table(tokens_full))
-as.data.frame(table(factor(tokens_full, levels=unique(tokens_full))))
-
-count_total_tokens <- as.data.frame(table(tokens_full))
-plot(count_total_tokens$Freq[count_total_tokens$Freq <= 500])
-
-count_total_tokens
-
-get_frequencies <- function(polarity){
-  testi_classe <- my_data[my_data$Style==polarity,]$Text
-  tokens_classe <- unlist(tokenize_words(testi_classe))
-  tokens_classe <- tokens_classe[!tokens_classe %in% sw] 
-  
-  dataframe_tf <- as.data.frame(
-    table(
-      #factor ci serve ad avere anche i token che compaiono con occorrenza = 0 in una data classe
-      factor(
-        tokens_classe, levels = unique(tokens_full)
-       )
-     #tokens_classe
-       )
-  )
-  dataframe_tf['tf'] <- dataframe_tf$Freq/length(tokens_classe)
-  dataframe_tf['classe'] <- c(polarity)
-  dataframe_tf <- rename(dataframe_tf, 'tokens'=Var1)
-
-  return(dataframe_tf)
+#scriviamo la funzione
+annotate_splits <- function(x, file) {
+  ud_model <- udpipe_load_model(file)
+  x <- as.data.table(udpipe_annotate(ud_model, 
+                                     x = tolower(x$Text),
+                                     doc_id = x$id))
+  return(x)
 }
 
-dataframe_tf_pos <- get_frequencies("positive")
-dataframe_tf_neg <- get_frequencies("negative")
-dataframe_tf_na <- get_frequencies("not applicable")
+# load parallel library future.apply
+library(future.apply)
 
-dataframe_tf_full <- bind_rows(
-  dataframe_tf_pos,
-  dataframe_tf_neg,
-  dataframe_tf_na,
- .id = "column_label")
+# Define cores to be used
+ncores <- 4L
+plan(multisession, workers = ncores)
 
-head(dataframe_tf_full)
+# split comments based on available cores
+corpus_splitted <- split(my_data, seq(1, nrow(my_data), by = 500))
 
-#visualizzare la frequenza di una parola rispetto alle classi
+annotation <- future_lapply(corpus_splitted, annotate_splits, file = ud_model$file_model)
+annotation <- rbind(annotation)
+head(annotation)
 
-parola <- 'salvini'
-dataframe_parola <- dataframe_tf_full[dataframe_tf_full$tokens==parola,]
-dataframe_parola
+lemmi <- annotation$lemma[!annotation$lemma %in% sw]
+freq_lemmi <- as.data.frame(table(lemmi))
+freq_lemmi_ordinati <- freq_lemmi[order(-freq_lemmi$Freq),]
 
-ggplot(data=dataframe_parola) +
-  geom_bar(mapping=aes(x=classe, y=tf), stat='identity')
+head(freq_lemmi_ordinati,10)
 
-# visualizzare parole per frequenza data una classe
-classe_specifica <- 'positive'
-dataframe_classe <- dataframe_tf_full[dataframe_tf_full$classe==classe_specifica,]
-dataframe_classe
-colnames(dataframe_classe)
-nrow(dataframe_classe)
+freq_lemmi_clean <- freq_lemmi_ordinati[!freq_lemmi_ordinati$lemmi %in% sw,]
+head(freq_lemmi_clean,100)
 
-dataframe_classe_ordinato <- head(dataframe_classe[order(-dataframe_classe$tf),],10)
-dataframe_classe_ordinato
+# **scriviamo una funzione che trovi il numero di occorrenze data una parola e una lista di token**
 
-ggplot(data=dataframe_classe_ordinato) +
-  geom_bar(mapping=aes(x=reorder(tokens,-Freq) , y=Freq), stat='identity')
 
-#calcolo tf idf
-# tf = frequenza di una parola data una classe / occorrenza della parola
-# idf = log(num. di documenti / num. di documenti che contengono la parola)
-
-# calcoliamo le idf
-
-frasi_tokenizzate <- tokenize_words(testi)
-frasi_tokenizzate <- lapply(frasi_tokenizzate, unique)
-token_per_frasi <- unlist(frasi_tokenizzate)
-
-table_tokens <- table(token_per_frasi)
-dataframe_df_full <- as.data.frame(table_tokens)
-
-dataframe_df_full['idf'] <- log(
-  length(testi)/
-    dataframe_df_full['Freq']
-) 
-
-dataframe_df_full <- rename(dataframe_df_full, tokens=token_per_frasi) 
-head(dataframe_df_full)
-
-# uniamo tf e idf
-dataframe_tf_idf <- merge(dataframe_df_full, dataframe_tf_full, by='tokens')
-
-colnames(dataframe_tf_idf)
-
-dataframe_tf_idf['tfidf'] <- dataframe_tf_idf$tf*dataframe_tf_idf$idf
-
-parola <- 'salvini'
-dataframe_parola <- dataframe_tf_idf[dataframe_tf_idf['tokens']==parola,]
-dataframe_parola
-
-ggplot(data=dataframe_parola) +
-  geom_bar(mapping=aes(x=classe, y=tfidf), stat='identity')
-
-parola <- 'pessimo'
-dataframe_parola <- dataframe_tf_idf[dataframe_tf_idf['tokens']==parola,]
-dataframe_parola
-
-ggplot(data=dataframe_parola) +
-  geom_bar(mapping=aes(x=classe, y=tfidf), stat='identity')
-
-#visualizzare parole per tfidf data una classe
-classe <- 'not applicable'
-dataframe_classe <- dataframe_tf_idf[dataframe_tf_idf['classe']==classe,]
-dataframe_classe_ordinato <- dataframe_classe[order(-dataframe_classe$tfidf),]
-head(dataframe_classe_ordinato, 20)
-
-ggplot(data=head(dataframe_classe_ordinato,10)) +
-  geom_bar(mapping=aes(x=reorder(tokens,tfidf) , y=tfidf), stat='identity')
-
-# **se prendiamo in considerazione solo i testi pos e neg, come cambiano i risultati?**
-# **ripetiamo l'analisi ma con un'altra colonna**

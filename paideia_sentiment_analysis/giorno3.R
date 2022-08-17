@@ -15,7 +15,6 @@ library(readxl)
 #ricarichiamo il nostro file di testo
 my_data <- read_excel("../materiali/dataset.xlsx")
 my_data <- data.frame(my_data)
-my_data$Style[my_data$Style == "positivr"] = "positive"
 
 sw <- stopwords("it")
 
@@ -27,115 +26,97 @@ tokens_full <- tokenize_words(testi)
 
 tokens_full <- tokens_full[!tokens_full %in% sw]
 
-#link nrc
-# http://saifmohammad.com/WebPages/AccessResource.htm
 
-#link sentix
-# http://valeriobasile.github.io/twita/downloads.html
+# quali classi di sono presenti nel dataset?
+table(my_data$Style)
 
 
-#importare lessico esterno
-nrc_table <- as.data.frame(
-  fread('./NRC-VAD-Lexicon-Aug2018Release/OneFilePerLanguage/Italian-it-NRC-VAD-Lexicon.txt'
-        )
-)
-
-head(nrc_table)
-
-#controlliamo i valori di alcune parole esemplificative
-
-nrc_table[nrc_table["Italian-it"] == 'abaco',]$Valence[1]
-nrc_table[nrc_table["Italian-it"] == 'perfetto',]$Valence[1]
-nrc_table[nrc_table["Italian-it"] == 'pessimo',]$Valence[1]
-nrc_table[nrc_table["Italian-it"] == 'fiducioso',]$Valence[1]
+my_data$Style[my_data$Style == "positivr"] = "positive"
+my_data$Style <- ifelse(is.na(my_data$Style),
+                        "not applicable",
+                        my_data$Style)
 
 
-#calcoliamo il valore per una frase esemplificativa
+# raccogliamo i testi per le valutazioni = positive
+testi_positive <- my_data[my_data$Style=="positive",]$Text
+head(testi_positive,10)
 
-frase <- c("Sono molto fiducioso per il futuro, anche se mi sento un po' preoccupato a causa degli ultimi avvenimenti")
-tokens_frase <- tokenize_words(frase)
-tokens_frase <- unlist(tokens_frase)
-tokens_frase <- tokens_frase[!tokens_frase %in% sw]
-tokens_frase
+tokens_positive <- unlist(tokenize_words(testi_positive))
+class(tokens_positive)
+tokens_positive <- tokens_positive[!tokens_positive %in% sw]
 
-nrc_table[is.element(nrc_table$`Italian-it`, tokens_frase),]
+head(as.data.frame(table(tokens_positive)))
 
-sentiment_values <- nrc_table[is.element(nrc_table$`Italian-it`, tokens_frase),]$Valence
-sentiment_values
+#creiamo un dataframe che per ogni coppia parola-classe ci mostra la frequenza
 
+total_tokens <- length(tokens_full)
+total_tokens
 
-#**scriviamo una funzione per calcolare il valore di valenza data una frase**
+as.data.frame(table(tokens_full))
 
-calcolare_sentiment_nrc <- function(frase_input){
-  tokens <- unlist(tokenize_words(frase_input))
-  tokens_clean <- tokens[!tokens %in% sw]
-  sentiment_values <- nrc_table[is.element(nrc_table$`Italian-it`, tokens_clean),]$Valence
-  return(mean(sentiment_values))
-}
-sentiment_values <- unlist(lapply(testi, calcolare_sentiment_nrc))
-sentiment_values[is.na(sentiment_values)] <- 0
-
-sentiment_values_dataframe <- data.frame(
-  testi, sentiment_values
-)
-head(sentiment_values_dataframe)
-sentiment_values_dataframe  <- sentiment_values_dataframe[
-  order(-sentiment_values_dataframe$sentiment_values)
-,]
-
-sentiment_values_dataframe$index <- seq(
-  from=1,
-  to=nrow(sentiment_values_dataframe),
-  by=1)
-colnames(sentiment_values_dataframe)
-head(sentiment_values_dataframe)
+count_total_tokens <- as.data.frame(table(tokens_full))
+plot(count_total_tokens$Freq[count_total_tokens$Freq <= 500])
+# **estraiamo i token per una data polarità**
 
 
-ggplot(sentiment_values_dataframe, aes(x=index, y=sentiment_values))+
-  geom_bar(stat='identity', aes(fill=sentiment_values))
+# scriviamo una funzione per estrare i token presenti nei post con una certa polarity
 
-# impostiamo dei limiti:
-# negativo = minore di 0.5
-# neutro = compreso tra 0.5 e 0.7
-# positivo = maggiore di 0.7
-
-sentiment_values_dataframe$polarity <- ifelse(
-  sentiment_values_dataframe$sentiment_values >= 0.7,
-  "positivo",
-  ifelse(sentiment_values_dataframe$sentiment_values <= 0.5,
-         "negativo",
-         "neutro")
+# con tf intendiamo la frequenza relativa del token
+get_frequencies <- function(polarity){
+  testi_classe <- my_data[my_data$Style==polarity,]$Text
+  tokens_classe <- unlist(tokenize_words(testi_classe))
+  tokens_classe <- tokens_classe[!tokens_classe %in% sw] 
+  
+  dataframe_tf <- as.data.frame(
+    table(
+      #factor ci serve ad avere anche i token che compaiono con occorrenza = 0 in una data classe
+      factor(
+        tokens_classe, levels = unique(tokens_full)
+      )
+      #tokens_classe
+    )
   )
+  dataframe_tf['tf'] <- dataframe_tf$Freq/length(tokens_classe)
+  dataframe_tf['classe'] <- c(polarity)
+  dataframe_tf <- rename(dataframe_tf, 'tokens'=Var1)
   
-  
-ggplot(sentiment_values_dataframe, aes(x=index, y=sentiment_values))+
-  geom_bar(stat='identity', aes(fill=polarity))+
-  scale_fill_manual(name='polarity',
-                    labels=c('positivo', 'negativo', 'neutro'),
-                    values = c("positivo"="#00ba38",
-                               "negativo"="#f8766d",
-                               "neutro"="#929292")) + 
-  coord_flip()
-                    
+  return(dataframe_tf)
+}
 
-#correlazione tra la sentiment calcolata e le statistiche del dataset
-sentiment_values_dataframe <- data.frame(
- sentiment_values, style
-)
+dataframe_tf_pos <- get_frequencies("positive")
+dataframe_tf_neg <- get_frequencies("negative")
+dataframe_tf_na <- get_frequencies("not applicable")
 
-ggplot(sentiment_values_dataframe, aes(x=style, y=sentiment_values)) +
-  geom_point()
+dataframe_tf_full <- bind_rows(
+  dataframe_tf_pos,
+  dataframe_tf_neg,
+  dataframe_tf_na,
+  .id = "column_label")
 
-# controlliamo quali testi presentano problematiche
+head(dataframe_tf_full)
 
-incongruenze <- sentiment_values_dataframe[
-  sentiment_values_dataframe$style == 'negative' &
-    sentiment_values_dataframe$sentiment_values >= 0.25
-,]
+#visualizzare la frequenza di una parola rispetto alle classi
 
-incongruenze
-tokens_full[67]
+parola <- 'salvini'
+dataframe_parola <- dataframe_tf_full[dataframe_tf_full$tokens==parola,]
+dataframe_parola
+
+ggplot(data=dataframe_parola) +
+  geom_bar(mapping=aes(x=classe, y=tf), stat='identity')
+
+# visualizzare parole per frequenza data una classe
+classe_specifica <- 'positive'
+dataframe_classe <- dataframe_tf_full[dataframe_tf_full$classe==classe_specifica,]
+dataframe_classe
+colnames(dataframe_classe)
+nrow(dataframe_classe)
+
+dataframe_classe_ordinato <- head(dataframe_classe[order(-dataframe_classe$tf),],10)
+dataframe_classe_ordinato
+
+ggplot(data=dataframe_classe_ordinato) +
+  geom_bar(mapping=aes(x=reorder(tokens,-Freq) , y=Freq), stat='identity')
 
 
-# **esaminare i risultati con un altro lessico**
-# **esaminare quali parole creano le incongruenze tra i risultati**
+#esaminare altre colonne
+
