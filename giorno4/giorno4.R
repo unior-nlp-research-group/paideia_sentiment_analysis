@@ -14,24 +14,34 @@ library(RTextTools)
 library(e1071)
 library(caret)
 
-
-#ricarichiamo il nostro file di testo
-my_data <- read_excel("../materiali/dataset.xlsx")
-my_data <- data.frame(my_data)
-
 sw <- stopwords("it")
 
-testi <- my_data$Text
-style <- my_data$Style
 
-#tokenizzazione ed eliminazione stop word
-tokens_full <- tokenize_words(testi)
+#ricarichiamo il nostro file annotato sintatticamente
+data <- read_csv('./annotazioni-sintattiche.csv')
+class(data)
+data <- as.data.frame(data)
 
-tokens_full <- tokens_full[!tokens_full %in% sw]
+lemmatized_texts <- c()
+for (i in unique(data$doc_id)) {
+  tokens <- data[data$doc_id==i,]$lemma
+  tokens <- tolower(tokens[!tokens %in% sw])
+  #text <- paste(tokens, collapse=' ')
+  lemmatized_texts <- c(lemmatized_texts, list(tokens))
+}
+lemmatized_texts[1]
+
+data_annotato <- read_excel("../materiali/dataset.xlsx")
+data_annotato <- data.frame(my_data)
 
 
-my_data$Style[my_data$Style == "positivr"] = "positive"
-my_data$Style <- ifelse(is.na(my_data$Style),
+testi <- data_annotato$Text
+style <- data_annotato$Style
+
+
+
+data_annotato$Style[my_data$Style == "positivr"] = "positive"
+data_annotato$Style <- ifelse(is.na(my_data$Style),
                         "not applicable",
                         my_data$Style)
 
@@ -67,7 +77,6 @@ frase <- c("Sono molto fiducioso per il futuro, anche se mi sento un po' preoccu
 tokens_frase <- tokenize_words(frase)
 tokens_frase <- unlist(tokens_frase)
 tokens_frase <- tokens_frase[!tokens_frase %in% sw]
-tokens_frase
 
 nrc_table[is.element(nrc_table$`Italian-it`, tokens_frase),]
 
@@ -83,7 +92,10 @@ calcolare_sentiment_nrc <- function(frase_input){
   sentiment_values <- nrc_table[is.element(nrc_table$`Italian-it`, tokens_clean),]$Valence
   return(mean(sentiment_values))
 }
-sentiment_values <- unlist(lapply(testi, calcolare_sentiment_nrc))
+sentiment_values <- unlist(lapply(lemmatized_texts, calcolare_sentiment_nrc))
+
+sentiment_values
+
 sentiment_values[is.na(sentiment_values)] <- 0
 
 sentiment_values_dataframe <- data.frame(
@@ -115,26 +127,42 @@ sentiment_values_dataframe$polarity <- ifelse(
          "negativo",
          "neutro")
 )
+table(sentiment_values_dataframe$polarity)
+table(style)
+
 
 # addestramento di un classificatore naive bayes
 
-index <- sample(1:nrow(my_data), size = .9 * nrow(my_data))
-train_split <- VCorpus(VectorSource(my_data[index, ]$Text))
-test_split <- VCorpus(VectorSource(my_data[-index, ]$Text))
+neg_texts <- unlist(lemmatized_texts[data_annotato$Style=='negative'])
+pos_texts <- unlist(lemmatized_texts[data_annotato$Style=='positive'])
+pos_texts <- pos_texts[!is.na(pos_texts)]
+neg_texts <- neg_texts[!is.na(neg_texts)]
 
-m_train <- DocumentTermMatrix(train_split)
-matTrain <- as.matrix(m_train)
-#write.table(matTrain, 'test.txt')
-m_test <- DocumentTermMatrix(test_split)
-matTest <- as.matrix(m_test)
+# la funzione successiva serve a calcolare le probabilità di una sequenza di token
 
-labelTrain <- as.factor(my_data[index, ]$Style)
-labelTest <- as.factor(my_data[-index, ]$Style)
+calc_probs <- function(tokens){
+  counts <- table(tokens) + 1
+  counts/sum(counts)
+}
 
-model <- naiveBayes(matTrain, labelTrain)
-pred <- predict(model, matTest)
+pos_probs <- calc_probs(unlist(pos_texts))
+neg_probs <- calc_probs(unlist(neg_texts))
 
-predict(model, c("Penso che Salvini sarebbe un ottimo premier"))
-predict(model, c("Penso che Salvini sarebbe un pessimo premier"))
+calc_probs_rare <- function(tokens){
+  tokens <- unlist(tokens)
+  counts <- table(tokens) + 1
+  return(log(1/sum(counts)))
+}
+pos_probs_rare <- calc_probs_rare(pos_texts)
+neg_probs_rare <- calc_probs_rare(neg_texts)
 
-confusionMatrix(labelTest, pred)
+calc_sentiment <- function(frase){
+  test <- unlist(tokenize_words(frase))
+  pos_pred <- sum(
+    is.na(pos_probs[test]))*pos_probs_rare+sum(pos_probs[test], na.rm=TRUE)
+  neg_pred <- sum(
+    is.na(neg_probs[test]))*neg_probs_rare+sum(neg_probs[test], na.rm=TRUE)
+  cat("prob. pos.", pos_pred, '\n')
+  cat("prob. neg.", neg_pred, '\n')
+}
+calc_sentiment("salvini")

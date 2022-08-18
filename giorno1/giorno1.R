@@ -54,21 +54,38 @@ str_extract(testi, pattern)
 # **quanti testi presentano hashtag?**
 # **estraiamo i tag di altri utenti**
 
-# analisi pos
-ud_model <- udpipe_download_model(language = "italian", overwrite = F)
-ud_it <- udpipe_load_model(ud_model)
+# rimozione punteggiatura
+
+remove_punct <- function(text){
+  text <- tolower(text)
+  text <- gsub(".", " ", text, fixed=TRUE)
+  text <- gsub(":", " ", text, fixed=TRUE)
+  text <- gsub("?", " ", text, fixed=TRUE)
+  text <- gsub("!", " ", text, fixed=TRUE)
+  text <- gsub("; ", " ", text, fixed=TRUE)
+  text <- gsub(", ", " ", text, fixed=TRUE)
+  text <- gsub("\ `", " ", text, fixed=TRUE)
+  text <- gsub("\n", " ", text, fixed=TRUE)
+  text <- gsub("\r", " ", text, fixed=TRUE)
+
+  return(text)
+  }
+
+my_data$clean_text <- remove_punct(my_data$Text)
+
+
+# analisi sintattica
 
 
 # scriviamo una funzione per estrarre info sintattiche
 annotate_splits <- function(x, file) {
   ud_model <- udpipe_load_model(file)
   x <- as.data.table(udpipe_annotate(ud_model, 
-                                     x = x$Text,
+                                     x = x$clean_text,
                                      doc_id = x$id))
   return(x)
 }
 
-# vedere pos e lemmi
 
 # load parallel library future.apply
 library(future.apply)
@@ -83,9 +100,14 @@ my_data$id <- seq(1:nrow(my_data))
 # dividere il corpus
 corpus_splitted <- split(my_data, seq(1, nrow(my_data), by = 1000))
 
-annotation <- future_lapply(corpus_splitted, annotate_splits, file = ud_model$file_model)
+annotation <- future_lapply(corpus_splitted, annotate_splits, file = '../materiali/italian-isdt-ud-2.5-191206.udpipe')
 annotation <- rbindlist(annotation)
 head(annotation)
+
+#write.csv(annotation, 'annotazioni-sintattiche.csv')
+
+
+
 
 upos_df <- data.frame(table(annotation$upos))
 ggplot(upos_df, aes(x=Var1, y=Freq)) + geom_histogram(stat='identity')
@@ -99,4 +121,5 @@ my_data$Style
 
 
 ## **carichiamo il dataset poivorrei dai materiali**
+
 ## **ripetiamo gli step spiegati in questa giornata**
