@@ -9,6 +9,11 @@ library(udpipe)
 library(stopwords)
 library(R.utils)
 library(tm)
+library(readxl)
+library(RTextTools)
+library(e1071)
+library(caret)
+
 
 #ricarichiamo il nostro file di testo
 my_data <- read_excel("../materiali/dataset.xlsx")
@@ -42,7 +47,7 @@ my_data$Style <- ifelse(is.na(my_data$Style),
 
 #importare lessico esterno
 nrc_table <- as.data.frame(
-  fread('./NRC-VAD-Lexicon-Aug2018Release/OneFilePerLanguage/Italian-it-NRC-VAD-Lexicon.txt'
+  fread('../materiali/NRC-VAD-Lexicon-Aug2018Release/OneFilePerLanguage/Italian-it-NRC-VAD-Lexicon.txt'
   )
 )
 
@@ -97,8 +102,6 @@ colnames(sentiment_values_dataframe)
 head(sentiment_values_dataframe)
 
 
-ggplot(sentiment_values_dataframe, aes(x=index, y=sentiment_values))+
-  geom_bar(stat='identity', aes(fill=sentiment_values))
 
 # impostiamo dei limiti:
 # negativo = minore di 0.5
@@ -113,13 +116,25 @@ sentiment_values_dataframe$polarity <- ifelse(
          "neutro")
 )
 
+# addestramento di un classificatore naive bayes
 
-ggplot(sentiment_values_dataframe, aes(x=index, y=sentiment_values))+
-  geom_bar(stat='identity', aes(fill=polarity))+
-  scale_fill_manual(name='polarity',
-                    labels=c('positivo', 'negativo', 'neutro'),
-                    values = c("positivo"="#00ba38",
-                               "negativo"="#f8766d",
-                               "neutro"="#929292")) + 
-  coord_flip()
+index <- sample(1:nrow(my_data), size = .9 * nrow(my_data))
+train_split <- VCorpus(VectorSource(my_data[index, ]$Text))
+test_split <- VCorpus(VectorSource(my_data[-index, ]$Text))
 
+m_train <- DocumentTermMatrix(train_split)
+matTrain <- as.matrix(m_train)
+#write.table(matTrain, 'test.txt')
+m_test <- DocumentTermMatrix(test_split)
+matTest <- as.matrix(m_test)
+
+labelTrain <- as.factor(my_data[index, ]$Style)
+labelTest <- as.factor(my_data[-index, ]$Style)
+
+model <- naiveBayes(matTrain, labelTrain)
+pred <- predict(model, matTest)
+
+predict(model, c("Penso che Salvini sarebbe un ottimo premier"))
+predict(model, c("Penso che Salvini sarebbe un pessimo premier"))
+
+confusionMatrix(labelTest, pred)

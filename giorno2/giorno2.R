@@ -5,6 +5,7 @@ library(tokenizers)
 library(stopwords)
 library(tidytext)
 library(tm)
+library(irr)
 library(readxl)
 
 
@@ -105,3 +106,11 @@ head(freq_lemmi_clean,100)
 
 
 # importare i dati annotati
+
+df <- read.csv('path/to/csv')
+
+# analisi IAA
+
+kappam.fleiss(df[,c("rater1", "rater2",...)])
+
+# **proposta di progetto**

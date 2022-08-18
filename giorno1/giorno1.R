@@ -95,3 +95,8 @@ colnames(my_data)
 
 my_data$Multiculturalism
 my_data$Style
+
+
+
+## **carichiamo il dataset poivorrei dai materiali**
+## **ripetiamo gli step spiegati in questa giornata**

@@ -10,7 +10,15 @@ librerie <- c('tidyverse',
               'textdata',
               "readxl",
               "parallel",
-              "future.apply")
+              "future.apply",
+	      "irr",
+	      "RTextTools",
+	      "e1071",
+	      "rlang"
+	      "hardhat",
+	      "recipes",
+	      "caret",
+)
 librerie_nuove <- librerie[!(librerie %in% installed.packages()[,"Package"])]
 if(length(librerie_nuove)>0)
   install.packages(librerie_nuove)
