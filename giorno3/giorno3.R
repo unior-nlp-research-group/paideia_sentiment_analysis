@@ -120,3 +120,5 @@ ggplot(data=dataframe_classe_ordinato) +
 
 #esaminare altre colonne
 
+
+
