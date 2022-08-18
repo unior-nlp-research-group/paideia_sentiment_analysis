@@ -100,3 +100,8 @@ head(freq_lemmi_clean,100)
 # **scriviamo una funzione che trovi il numero di occorrenze data una parola e una lista di token**
 
 
+# creazione di un progetto di annotazione
+# nlpgroup.unior.it
+
+
+# importare i dati annotati
