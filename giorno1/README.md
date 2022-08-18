@@ -11,6 +11,8 @@
 10. Processamento base dei testi
 11. Espressioni regolari
 
+[slide](https://docs.google.com/presentation/d/1uDcHnvbvM4QGHYkKPKRFSmy1EH5GI8tDRoWn_UMGC9w/edit?usp=sharing)
+
 ### Sessione hand-on
 1. Utilizzo delle librerie esterne
 2. Caricare dati
