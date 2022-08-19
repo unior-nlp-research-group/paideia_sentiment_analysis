@@ -18,5 +18,5 @@ Risorsa per l'estrazione di informazioni sintattiche per l'italiano
 6. **NRC-VAD-Lexicon-Aug2018Release**  
 Lessico multilingue per la Sentiment Analysis, [fonte](https://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm)
 
-7.**sentix**  
+7. **sentix**  
 Lessico italiano per la Sentiment Analysis [fonte](http://valeriobasile.github.io/twita/sentix.html)
