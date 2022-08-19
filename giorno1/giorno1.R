@@ -56,7 +56,7 @@ str_extract(testi, pattern)
 
 # rimozione punteggiatura
 
-remove_punct <- function(text){
+clean_text <- function(text){
   text <- tolower(text)
   text <- gsub(".", " ", text, fixed=TRUE)
   text <- gsub(":", " ", text, fixed=TRUE)
@@ -71,11 +71,16 @@ remove_punct <- function(text){
   return(text)
   }
 
-my_data$clean_text <- remove_punct(my_data$Text)
+my_data$clean_text <- clean_text(my_data$Text)
 
 
 # analisi sintattica
+ud_it <- udpipe_load_model(file='./materiali/italian-isdt-ud-2.5-191206.udpipe')
+annotazione = as.data.table(udpipe_annotate(ud_it, 
+                                            x="Questo è il corso di sentiment analysis per le scienze sociali",
+                                            doc_id = 1))
 
+annotazione[annotazione$upos=='PRON']
 
 # scriviamo una funzione per estrarre info sintattiche
 annotate_splits <- function(x, file) {
@@ -100,13 +105,11 @@ my_data$id <- seq(1:nrow(my_data))
 # dividere il corpus
 corpus_splitted <- split(my_data, seq(1, nrow(my_data), by = 1000))
 
-annotation <- future_lapply(corpus_splitted, annotate_splits, file = '../materiali/italian-isdt-ud-2.5-191206.udpipe')
+annotation <- future_lapply(corpus_splitted, annotate_splits, file = './materiali/italian-isdt-ud-2.5-191206.udpipe')
 annotation <- rbindlist(annotation)
 head(annotation)
 
 #write.csv(annotation, 'annotazioni-sintattiche.csv')
-
-
 
 
 upos_df <- data.frame(table(annotation$upos))

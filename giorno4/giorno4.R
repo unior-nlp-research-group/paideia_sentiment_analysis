@@ -36,17 +36,17 @@ data_annotato <- data.frame(my_data)
 
 
 testi <- data_annotato$Text
+
+
+
+data_annotato$Style[data_annotato$Style == "positivr"] <- "positive"
+data_annotato$Style <- ifelse(is.na(data_annotato$Style),
+                        "not applicable",
+                        data_annotato$Style)
+
 style <- data_annotato$Style
 
-
-
-data_annotato$Style[my_data$Style == "positivr"] = "positive"
-data_annotato$Style <- ifelse(is.na(my_data$Style),
-                        "not applicable",
-                        my_data$Style)
-
-
-
+table(style)
 # utilizzo dei lessici per la sentiment
 #link nrc
 # http://saifmohammad.com/WebPages/AccessResource.htm
@@ -57,7 +57,7 @@ data_annotato$Style <- ifelse(is.na(my_data$Style),
 
 #importare lessico esterno
 nrc_table <- as.data.frame(
-  fread('../materiali/NRC-VAD-Lexicon-Aug2018Release/OneFilePerLanguage/Italian-it-NRC-VAD-Lexicon.txt'
+  fread('./materiali/NRC-VAD-Lexicon-Aug2018Release/OneFilePerLanguage/Italian-it-NRC-VAD-Lexicon.txt'
   )
 )
 
@@ -133,36 +133,35 @@ table(style)
 
 # addestramento di un classificatore naive bayes
 
-neg_texts <- unlist(lemmatized_texts[data_annotato$Style=='negative'])
-pos_texts <- unlist(lemmatized_texts[data_annotato$Style=='positive'])
-pos_texts <- pos_texts[!is.na(pos_texts)]
-neg_texts <- neg_texts[!is.na(neg_texts)]
+# creare split
+set.seed(12)
+train_index = sample(3792, 3000)
 
-# la funzione successiva serve a calcolare le probabilità di una sequenza di token
+train_sentences <- lemmatized_texts[train_index]
+train_corpus <- VCorpus(VectorSource(train_sentences))
+test_sentences <- lemmatized_texts[-train_index]
+test_corpus <- VCorpus(VectorSource(test_sentences))
 
-calc_probs <- function(tokens){
-  counts <- table(tokens) + 1
-  counts/sum(counts)
-}
 
-pos_probs <- calc_probs(unlist(pos_texts))
-neg_probs <- calc_probs(unlist(neg_texts))
+train_dtm <- DocumentTermMatrix(train_corpus)
+test_dtm <- DocumentTermMatrix(test_corpus)
 
-calc_probs_rare <- function(tokens){
-  tokens <- unlist(tokens)
-  counts <- table(tokens) + 1
-  return(log(1/sum(counts)))
-}
-pos_probs_rare <- calc_probs_rare(pos_texts)
-neg_probs_rare <- calc_probs_rare(neg_texts)
+tm::inspect(test_dtm)
 
-calc_sentiment <- function(frase){
-  test <- unlist(tokenize_words(frase))
-  pos_pred <- sum(
-    is.na(pos_probs[test]))*pos_probs_rare+sum(pos_probs[test], na.rm=TRUE)
-  neg_pred <- sum(
-    is.na(neg_probs[test]))*neg_probs_rare+sum(neg_probs[test], na.rm=TRUE)
-  cat("prob. pos.", pos_pred, '\n')
-  cat("prob. neg.", neg_pred, '\n')
-}
-calc_sentiment("salvini")
+train_labels <- style[train_index]
+test_labels <- style[-train_index]
+
+classifier <- naiveBayes(as.matrix(train_dtm), train_labels)
+
+predict(classifier, "Secondo me Salvini rappresenta la sola speranza per questo paese")
+predict(classifier, "Secondo me Salvini rappresenterebbe un pessimo premier orrendo")
+
+
+pos_ids <- data_annotato$id[data_annotato$Style == 'positive']
+pos_texts <- VCorpus(VectorSource(lemmatized_texts[pos_ids]))
+wordcloud(pos_texts, max.words=50, scale=c(4,0.5))
+
+neg_ids <- data_annotato$id[data_annotato$Style == 'negative']
+neg_texts <- VCorpus(VectorSource(lemmatized_texts[neg_ids]))
+wordcloud(neg_texts, max.words=50, scale=c(4,0.5))
+# **proviamo a creare un classificatore simile ma utilizzando i dati NRC / sentix**
