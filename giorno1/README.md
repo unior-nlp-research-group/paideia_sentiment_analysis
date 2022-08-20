@@ -8,7 +8,7 @@
 7. Processamento base dei testi
 8. Espressioni regolari
 
-[Slide del giorno 1](https://docs.google.com/presentation/d/1uDcHnvbvM4QGHYkKPKRFSmy1EH5GI8tDRoWn_UMGC9w/edit?usp=sharing)
+[Slide Giorno 1](https://docs.google.com/presentation/d/1uDcHnvbvM4QGHYkKPKRFSmy1EH5GI8tDRoWn_UMGC9w/edit?usp=sharing)
 
 ### Sessione hand-on
 1. Utilizzo delle librerie esterne
