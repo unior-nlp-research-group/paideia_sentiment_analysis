@@ -4,7 +4,7 @@
 3. Classificazione del sentiment
 4. L'annotazione dei dati linguistici
 
-[Slide del giorno 2](https://docs.google.com/presentation/d/1csIlgzKOATb71MZoqy5aPS_W1O9uQ0qOZyi3mFbVc4Q/edit?usp=sharing)
+[Slide Giorno 2](https://docs.google.com/presentation/d/1csIlgzKOATb71MZoqy5aPS_W1O9uQ0qOZyi3mFbVc4Q/edit?usp=sharing)
 
 ### Sessione hand-on
 1. Creazione di un progetto di annotazione con Doccano
