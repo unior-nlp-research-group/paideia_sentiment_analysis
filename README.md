@@ -9,7 +9,7 @@ Moltissimi sono i campi di applicazione, dalle analisi di marketing a quelle pol
 Il corso intende dotare gli studenti degli strumenti necessari per effettuare la sentiment analysis dei dati, partendo dai concetti introduttivi fino alla valutazione e visualizzazione dei risultati.
 
 ### Giorno 1 - Introduzione alla sentiment analysis e al trattamento automatico del linguaggio
-### Giorno 2
-### Giorno 3
-### Giorno 4
+### Giorno 2 - Classificazione del sentiment e annotazione dei dati
+### Giorno 3 - Risorse per la sentiment analysis
+### Giorno 4 - Metodi per la sentiment analysis
 ### Giorno 5 - Valutazione e visualizzazione dei risultati
