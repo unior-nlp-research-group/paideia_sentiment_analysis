@@ -13,3 +13,8 @@ Il corso intende dotare gli studenti degli strumenti necessari per effettuare la
 - Giorno 3 - [Risorse per la sentiment analysis](https://docs.google.com/presentation/d/1KdOaGQrgQxrFrHL_ko3QoDtX23ZAaKYqVMdqKFONZNs/edit?usp=sharing)
 - Giorno 4 - [Metodi per la sentiment analysis](https://docs.google.com/presentation/d/1BoKBxtU1WBrn-yZWOEauWx_gX4mPU7ZRNArQ-WV8Wkk/edit?usp=sharing)
 - Giorno 5 - [Valutazione e visualizzazione dei risultati](https://docs.google.com/presentation/d/1bFTM-nlnnrb5ra68ydM9kk_OnWh6bMofzdgAAzdL_sE/edit?usp=sharing)
+
+**Materiali di riferimento**
+- [Jurafsky, D. and Martin, J.H. (2021) Speech and Language Processing (3rd ed. draft) - Cap. 2, 4, 20](https://web.stanford.edu/~jurafsky/slp3/)
+- [Westerski, A. (2007). Sentiment Analysis: Introduction and the State of the Art overview](http://www.adamwesterski.com/wp-content/files/docsCursos/sentimentA_doc_TLAW.pdf)
+- 
