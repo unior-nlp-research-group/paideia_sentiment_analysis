@@ -16,5 +16,6 @@ Il corso intende dotare gli studenti degli strumenti necessari per effettuare la
 
 **Materiali di riferimento**
 - [Jurafsky, D. and Martin, J.H. (2021) Speech and Language Processing (3rd ed. draft) - Cap. 2, 4, 20](https://web.stanford.edu/~jurafsky/slp3/)
-- [Westerski, A. (2007). Sentiment Analysis: Introduction and the State of the Art overview](http://www.adamwesterski.com/wp-content/files/docsCursos/sentimentA_doc_TLAW.pdf)
 - [Katrekar, A., & AVP, B. D. A. (2005). An introduction to sentiment analysis. GlobalLogic Inc.](https://www.globallogic.com/wp-content/uploads/2014/10/Introduction-to-Sentiment-Analysis.pdf)
+- [Westerski, A. (2007). Sentiment Analysis: Introduction and the State of the Art overview](http://www.adamwesterski.com/wp-content/files/docsCursos/sentimentA_doc_TLAW.pdf)
+
