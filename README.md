@@ -20,5 +20,9 @@ Il corso intende dotare gli studenti degli strumenti necessari per effettuare la
 - [Katrekar, A., & AVP, B. D. A. (2005). An introduction to sentiment analysis. GlobalLogic Inc.](https://www.globallogic.com/wp-content/uploads/2014/10/Introduction-to-Sentiment-Analysis.pdf)
 - [Westerski, A. (2007). Sentiment Analysis: Introduction and the State of the Art overview](http://www.adamwesterski.com/wp-content/files/docsCursos/sentimentA_doc_TLAW.pdf)
 
+**Link di riferimento**
+- [RStudio](https://www.rstudio.com/)
+- [R](https://cran.r-project.org/)
+
 Ulteriori riferimenti sono citati nelle slide
 
