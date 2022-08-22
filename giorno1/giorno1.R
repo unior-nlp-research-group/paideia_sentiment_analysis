@@ -15,10 +15,10 @@ my_data <- read_excel("../materiali/dataset.xlsx")
 my_data <- data.frame(my_data)
 
 class(my_data)
-head(my_data)
 
-colnames(my_data)
+head(my_data)
 nrow(my_data)
+colnames(my_data)
 
 testi <- my_data$Text
 
