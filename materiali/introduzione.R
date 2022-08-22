@@ -80,10 +80,10 @@ print("3 diverso da 8?")
 3 != 8
 print("Operazioni complesse")
 !(4<5)
+grepl("mela", "una mela al giorno")
+!grepl("mela", "una mela al giorno")
 ((4<5)|(5>12))
 ((4<5)&(5>12))
-
-#vettori e liste
 
 #liste di elementi uguali
 
@@ -100,6 +100,7 @@ x <- c("Mariapia", "Gennaro")
 #aggiungere elementi
 y <- c(x, "Felice")
 print(y)
+
 z <- c("Felice", x)
 print(z)
 
@@ -108,6 +109,7 @@ serie <- 1:10
 
 #recuperare elementi dai vettori
 numeri_pari <- seq(from=0, to=100, by=2)
+print(numeri_pari)
 numeri_pari[12]
 
 #dataframe
