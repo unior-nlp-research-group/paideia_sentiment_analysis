@@ -77,8 +77,7 @@ nrc_table[nrc_table["Italian-it"] == 'perfetto',]$Valence[1]
 nrc_table[nrc_table["Italian-it"] == 'pessimo',]$Valence[1]
 nrc_table[nrc_table["Italian-it"] == 'fiducioso',]$Valence[1]
 
-# **scriviamo una funzione che trovi il numero di occorrenze data una parola e una lista di token**
-
+# **creiamo un vettore che affibbia un valore a ogni lemma presente nel dataset annotato**
 
 # creazione di un progetto di annotazione
 # nlpgroup.unior.it
