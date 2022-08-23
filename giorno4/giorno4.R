@@ -54,7 +54,6 @@ table(style)
 #link sentix
 # http://valeriobasile.github.io/twita/downloads.html
 
-
 #importare lessico esterno
 nrc_table <- as.data.frame(
   fread('./materiali/NRC-VAD-Lexicon-Aug2018Release/OneFilePerLanguage/Italian-it-NRC-VAD-Lexicon.txt'
@@ -62,14 +61,6 @@ nrc_table <- as.data.frame(
 )
 
 head(nrc_table)
-
-#controlliamo i valori di alcune parole esemplificative
-
-nrc_table[nrc_table["Italian-it"] == 'abaco',]$Valence[1]
-nrc_table[nrc_table["Italian-it"] == 'perfetto',]$Valence[1]
-nrc_table[nrc_table["Italian-it"] == 'pessimo',]$Valence[1]
-nrc_table[nrc_table["Italian-it"] == 'fiducioso',]$Valence[1]
-
 
 #calcoliamo il valore per una frase esemplificativa
 

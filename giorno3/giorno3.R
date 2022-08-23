@@ -21,11 +21,8 @@ sw <- stopwords("it")
 testi <- my_data$Text
 style <- my_data$Style
 
-#tokenizzazione
-tokens_full <- tokenize_words(testi)
-
-tokens_full <- tokens_full[!tokens_full %in% sw]
-
+#ricarichiamo il file annotato
+annotation <- read_csv("path/to/file")
 
 # quali classi di sono presenti nel dataset?
 table(my_data$Style)

@@ -62,6 +62,21 @@ head(freq_lemmi_ordinati,10)
 freq_lemmi_clean <- freq_lemmi_ordinati[!freq_lemmi_ordinati$lemmi %in% sw,]
 head(freq_lemmi_clean,100)
 
+#importare lessico esterno
+nrc_table <- as.data.frame(
+  fread('./materiali/NRC-VAD-Lexicon-Aug2018Release/OneFilePerLanguage/Italian-it-NRC-VAD-Lexicon.txt'
+  )
+)
+
+head(nrc_table)
+
+#controlliamo i valori di alcune parole esemplificative
+
+nrc_table[nrc_table["Italian-it"] == 'abaco',]$Valence[1]
+nrc_table[nrc_table["Italian-it"] == 'perfetto',]$Valence[1]
+nrc_table[nrc_table["Italian-it"] == 'pessimo',]$Valence[1]
+nrc_table[nrc_table["Italian-it"] == 'fiducioso',]$Valence[1]
+
 # **scriviamo una funzione che trovi il numero di occorrenze data una parola e una lista di token**
 
 
