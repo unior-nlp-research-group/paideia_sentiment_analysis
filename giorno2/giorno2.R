@@ -28,7 +28,7 @@ annotation <- read_csv("path/to/file")
 table(my_data$Style)
 
 
-my_data$Style[my_data$Style == "positivr"] = "positive"
+my_data$Style[my_data$Style == "positivr"] <- "positive"
 my_data$Style <- ifelse(is.na(my_data$Style),
                         "not applicable",
                         my_data$Style)
