@@ -21,8 +21,8 @@ Il corso intende dotare gli studenti degli strumenti necessari per effettuare la
 - [Westerski, A. (2007). Sentiment Analysis: Introduction and the State of the Art overview](http://www.adamwesterski.com/wp-content/files/docsCursos/sentimentA_doc_TLAW.pdf)
 
 **Link di riferimento**
-- [RStudio](https://www.rstudio.com/)
 - [R](https://cran.r-project.org/)
+- [RStudio](https://www.rstudio.com/)
 
 Ulteriori riferimenti sono citati nelle slide
 
