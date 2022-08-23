@@ -2,83 +2,118 @@
 library(tidyverse)
 library(ggplot2)
 library(tokenizers)
-library(stopwords)
-library(tidytext)
+library(wordcloud)
+library(RColorBrewer)
+library(SnowballC)
 library(udpipe)
+library(stopwords)
+library(R.utils)
 library(tm)
-library(irr)
+require(data.table)
 library(readxl)
-library(data.table)
 
-
-#ricarichiamo il nostro dataset
-my_data <- read_excel("./materiali/dataset.xlsx")
+#ricarichiamo il nostro file di testo
+my_data <- read_excel("../materiali/dataset.xlsx")
 my_data <- data.frame(my_data)
 
-testi <- my_data$Text
-
-# carichiamo il nostro file annotato sintatticamente
-data_annotati <- read_csv("path/to/file")
-
-
-#tokenizzazione
-tokens_full <- data_annotati$token
-
-# ottenere la frequenza dei token
-table(tokens_full)
-
-freq_parole <- as.data.frame(table(tokens_full))
-
-# esaminare una parola di interesse
-parola_di_interesse <- "politiche"
-
-num_occorrenze <- freq_parole[freq_parole$tokens_full == parola_di_interesse,]
-num_occorrenze$Freq
-
-# ordiniamo le parole per numero di occorrenze
-freq_parole_ordinate <- freq_parole[order(-freq_parole$Freq),]
-# guardiamo le parole più frequenti
-head(freq_parole_ordinate,10)
-
-#pulizia del testo
-
-#stopword
 sw <- stopwords("it")
-head(sw, 10)
 
-tokens_clean <- tokens[!tokens_full %in% sw]
+testi <- my_data$Text
+style <- my_data$Style
 
-freq_parole <- as.data.frame(table(tokens_clean))
-freq_parole_ordinate <- freq_parole[order(-freq_parole$Freq),]
-head(freq_parole_ordinate,10)
+#ricarichiamo il file annotato
+annotation <- read_csv("path/to/file")
+
+# quali classi di sono presenti nel dataset?
+table(my_data$Style)
 
 
-lemmi <- annotation$lemma[!annotation$lemma %in% sw]
-freq_lemmi <- as.data.frame(table(lemmi))
-freq_lemmi_ordinati <- freq_lemmi[order(-freq_lemmi$Freq),]
+my_data$Style[my_data$Style == "positivr"] = "positive"
+my_data$Style <- ifelse(is.na(my_data$Style),
+                        "not applicable",
+                        my_data$Style)
 
-head(freq_lemmi_ordinati,10)
 
-freq_lemmi_clean <- freq_lemmi_ordinati[!freq_lemmi_ordinati$lemmi %in% sw,]
-head(freq_lemmi_clean,100)
+# raccogliamo i testi per le valutazioni = positive
+testi_positive <- my_data[my_data$Style=="positive",]$Text
+head(testi_positive,10)
 
-#importare lessico esterno
-nrc_table <- as.data.frame(
-  fread('./materiali/NRC-VAD-Lexicon-Aug2018Release/OneFilePerLanguage/Italian-it-NRC-VAD-Lexicon.txt'
+tokens_positive <- unlist(tokenize_words(testi_positive))
+class(tokens_positive)
+tokens_positive <- tokens_positive[!tokens_positive %in% sw]
+
+head(as.data.frame(table(tokens_positive)))
+
+#creiamo un dataframe che per ogni coppia parola-classe ci mostra la frequenza
+
+total_tokens <- length(tokens_full)
+total_tokens
+
+as.data.frame(table(tokens_full))
+
+count_total_tokens <- as.data.frame(table(tokens_full))
+plot(count_total_tokens$Freq[count_total_tokens$Freq <= 500])
+# **estraiamo i token per una data polarità**
+
+
+# scriviamo una funzione per estrare i token presenti nei post con una certa polarity
+
+# con tf intendiamo la frequenza relativa del token
+get_frequencies <- function(polarity){
+  testi_classe <- my_data[my_data$Style==polarity,]$Text
+  tokens_classe <- unlist(tokenize_words(testi_classe))
+  tokens_classe <- tokens_classe[!tokens_classe %in% sw] 
+  
+  dataframe_tf <- as.data.frame(
+    table(
+      #factor ci serve ad avere anche i token che compaiono con occorrenza = 0 in una data classe
+      factor(
+        tokens_classe, levels = unique(tokens_full)
+      )
+      #tokens_classe
+    )
   )
-)
+  dataframe_tf['tf'] <- dataframe_tf$Freq/length(tokens_classe)
+  dataframe_tf['classe'] <- c(polarity)
+  dataframe_tf <- rename(dataframe_tf, 'tokens'=Var1)
+  
+  return(dataframe_tf)
+}
 
-head(nrc_table)
+dataframe_tf_pos <- get_frequencies("positive")
+dataframe_tf_neg <- get_frequencies("negative")
+dataframe_tf_na <- get_frequencies("not applicable")
 
-#controlliamo i valori di alcune parole esemplificative
+dataframe_tf_full <- bind_rows(
+  dataframe_tf_pos,
+  dataframe_tf_neg,
+  dataframe_tf_na,
+  .id = "column_label")
 
-nrc_table[nrc_table["Italian-it"] == 'abaco',]$Valence[1]
-nrc_table[nrc_table["Italian-it"] == 'perfetto',]$Valence[1]
-nrc_table[nrc_table["Italian-it"] == 'pessimo',]$Valence[1]
-nrc_table[nrc_table["Italian-it"] == 'fiducioso',]$Valence[1]
+head(dataframe_tf_full)
 
-# **guardare anche l'altro dataset NRC**
-# **creiamo un vettore che affibbia un valore a ogni lemma presente nel dataset annotato**
+#visualizzare la frequenza di una parola rispetto alle classi
+
+parola <- 'salvini'
+dataframe_parola <- dataframe_tf_full[dataframe_tf_full$tokens==parola,]
+dataframe_parola
+
+ggplot(data=dataframe_parola) +
+  geom_bar(mapping=aes(x=classe, y=tf), stat='identity')
+
+# visualizzare parole per frequenza data una classe
+classe_specifica <- 'positive'
+dataframe_classe <- dataframe_tf_full[dataframe_tf_full$classe==classe_specifica,]
+dataframe_classe
+colnames(dataframe_classe)
+nrow(dataframe_classe)
+
+dataframe_classe_ordinato <- head(dataframe_classe[order(-dataframe_classe$tf),],10)
+dataframe_classe_ordinato
+
+ggplot(data=dataframe_classe_ordinato) +
+  geom_bar(mapping=aes(x=reorder(tokens,-Freq) , y=Freq), stat='identity')
+
 
 # creazione di un progetto di annotazione
 # nlpgroup.unior.it
@@ -92,4 +127,3 @@ df <- read.csv('path/to/csv')
 
 kappam.fleiss(df[,c("rater1", "rater2",...)])
 
-# **proposta di progetto**
