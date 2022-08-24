@@ -131,11 +131,14 @@ ggplot(data=dataframe_classe_ordinato) +
 
 # importare i dati annotati
 
-install.packages(jsonlite)
+#install.packages("jsonlite")
 
 library(jsonlite)
+library(dplyr)
 
-files <- list.files(path='.', pattern=NULL, full.names=TRUE)
+files <- list.files(path='./materiali/annotazioni_amazon',
+                    pattern='utente_paideia*',
+                    full.names=TRUE)
 files
 
 readfiles <- function(filename){
@@ -146,7 +149,35 @@ readfiles <- function(filename){
 }
 
 dfs <- lapply(files, readfiles)
-clss(dfs[[1]])
+is.na(dfs[[1]]$entities.id1)
+dataframe_id1_annotatore1
+
+dataframe_id1_annotatore1 <- dfs[[1]]$entities.id1
+dataframe_id2_annotatore1 <- dfs[[2]]$entities.id1 
+dataframe_id4_annotatore1 <- dfs[[4]]$entities.id1
+dataframe_id5_annotatore1 <- dfs[[5]]$entities.id1
+dataframe_id7_annotatore1 <- dfs[[7]]$entities.id1
+
+dataframe_id1_annotatore1[is.na(dataframe_id1_annotatore1)] <- "None"
+dataframe_id2_annotatore1[is.na(dataframe_id2_annotatore1)] <- "None"
+dataframe_id4_annotatore1[is.na(dataframe_id4_annotatore1)] <- "None"
+dataframe_id5_annotatore1[is.na(dataframe_id5_annotatore1)] <- "None"
+dataframe_id7_annotatore1[is.na(dataframe_id7_annotatore1)] <- "None"
+
+
+dataframe_id1_annotatore1
+install.packages("kappam")
+library(irr)
+kappam.fleiss(c(
+  dataframe_id1_annotatore1,
+  dataframe_id2_annotatore1,
+  dataframe_id4_annotatore1,
+  dataframe_id5_annotatore1,
+  dataframe_id7_annotatore1))
+
+dataframe_id1_annotatore1
+
+
 # analisi IAA
 
 # 1: quali label sono stati annotati dagli annotatori
