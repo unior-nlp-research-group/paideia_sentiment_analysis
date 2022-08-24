@@ -13,7 +13,7 @@ require(data.table)
 library(readxl)
 
 #ricarichiamo il nostro file di testo
-my_data <- read_excel("../materiali/dataset.xlsx")
+my_data <- read_excel("./materiali/dataset.xlsx")
 my_data <- data.frame(my_data)
 
 sw <- stopwords("it")
@@ -22,10 +22,12 @@ testi <- my_data$Text
 style <- my_data$Style
 
 #ricarichiamo il file annotato
-annotation <- read_csv("path/to/file")
+annotation <- read_csv("~/Progetti/paideia_sentiment_analysis/materiali/annotazioni-sintattiche.csv")
 
 # quali classi di sono presenti nel dataset?
 table(my_data$Style)
+head(my_data$Style)
+
 
 
 my_data$Style[my_data$Style == "positivr"] <- "positive"
@@ -33,6 +35,14 @@ my_data$Style <- ifelse(is.na(my_data$Style),
                         "not applicable",
                         my_data$Style)
 
+write.csv(my_data, "./materiali/dataset_fixed.csv")
+
+# 
+colnames(annotation)
+
+sum(!is.na(annotation[annotation$dep_rel == "root",]$token))
+
+head(annotation[,7:10])
 
 # raccogliamo i testi per le valutazioni = positive
 testi_positive <- my_data[my_data$Style=="positive",]$Text
@@ -121,7 +131,21 @@ ggplot(data=dataframe_classe_ordinato) +
 
 # importare i dati annotati
 
-df <- read.csv('path/to/csv')
+install.packages(jsonlite)
+
+library(jsonlite)
+
+files <- list.files(path='.', pattern=NULL, full.names=TRUE)
+files
+
+readfiles <- function(filename){
+	lines <- readLines(filename)
+	lines <- lapply(lines, fromJSON)
+	lines <- lapply(lines, unlist)
+	df <- bind_rows(lines)
+}
+
+df_utente1 <- readfiles(files[1])
 
 # analisi IAA
 

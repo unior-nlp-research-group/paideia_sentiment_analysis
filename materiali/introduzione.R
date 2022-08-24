@@ -17,7 +17,8 @@ librerie <- c('tidyverse',
 	      "rlang",
 	      "hardhat",
 	      "recipes",
-	      "caret"
+	      "caret",
+	      "wordcloud"
 )
 librerie_nuove <- librerie[!(librerie %in% installed.packages()[,"Package"])]
 if(length(librerie_nuove)>0)
