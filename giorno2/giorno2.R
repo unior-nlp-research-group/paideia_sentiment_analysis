@@ -145,9 +145,13 @@ readfiles <- function(filename){
 	df <- bind_rows(lines)
 }
 
-df_utente1 <- readfiles(files[1])
-
+dfs <- lapply(files, readfiles)
+clss(dfs[[1]])
 # analisi IAA
 
+# 1: quali label sono stati annotati dagli annotatori
+# 2: quali span sono stati annotati dagli annotatori
+
 kappam.fleiss(df[,c("rater1", "rater2",...)])
+
 
