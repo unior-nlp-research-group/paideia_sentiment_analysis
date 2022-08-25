@@ -24,24 +24,29 @@ class(data)
 colnames(data)
 #data <- as.data.frame(data)
 
-testi_lemmatizzati <- c()
-for (i in unique(data$doc_id)) {
-  tokens <- data[data$doc_id==i,]$lemma
-  tokens <- tolower(tokens[!tokens %in% sw])
-  testi_lemmatizzati <- c(testi_lemmatizzati, list(tokens))
-}
-testi_lemmatizzati[1]
-
 data_annotato <- read_excel("./materiali/dataset.xlsx")
 data_annotato <- data.frame(data_annotato)
 testi <- data_annotato$Text
 
+doc_ids <- unique(data$doc_id)
+
+token_from_lemmas <- function(id){
+  tokens <- data[data$doc_id==id,]$lemma
+  tokens <- unlist(tolower(tokens[!tokens %in% sw]))
+  return(paste(tokens))
+}
+testi_lemmatizzati <- lapply(doc_ids, token_from_lemmas)
+
+
 data_annotato$Style[data_annotato$Style == "positivr"] <- "positive"
+data_annotato$Style[data_annotato$Style == "emphasising candidate's values"] <- "not applicable"
+
 data_annotato$Style <- ifelse(is.na(data_annotato$Style),
                         "not applicable",
                         data_annotato$Style)
-
 style <- data_annotato$Style
+
+data_annotato$id <- seq(from=1, to=nrow(data_annotato), by=1)
 
 table(style)
 # utilizzo dei lessici per la sentiment
@@ -71,7 +76,7 @@ lessico[is.element(lessico$V1, tokens_frase),]
 
 sentiment_values <- lessico[is.element(lessico$V1, tokens_frase),]$V6
 sentiment_values
-
+mean(sentiment_values)
 
 #**scriviamo una funzione per calcolare il valore di valenza data una frase**
 
@@ -81,9 +86,9 @@ calcolare_sentiment <- function(frase_input){
   sentiment_values <- lessico[is.element(lessico$V1, tokens_clean),]$V6
   return(mean(sentiment_values))
 }
-sentiment_values <- unlist(lapply(lemmatized_texts, calcolare_sentiment))
+sentiment_values <- unlist(lapply(testi_lemmatizzati, calcolare_sentiment))
 
-head(sentiment_values)
+hist(sentiment_values)
 #quanti NA ci sono?
 
 sentiment_values[is.na(sentiment_values)] <- 0
@@ -105,10 +110,10 @@ head(sentiment_values_dataframe)
 
 
 
-# impostiamo dei limiti:
-# negativo = minore di 0.5
-# neutro = compreso tra 0.5 e 0.7
-# positivo = maggiore di 0.7
+# impostiamo dei limiti (threshold):
+# negativo = ...
+# neutro = ...
+# positivo = ...
 
 sentiment_values_dataframe$polarity <- ifelse(
   sentiment_values_dataframe$sentiment_values >= 0.7,
@@ -125,33 +130,50 @@ table(style)
 
 # creare split
 set.seed(12)
-train_index = sample(nrow(sentiment_values_dataframe), 3000)
+#creazione di un indice per il training
+train_index <- sample(nrow(sentiment_values_dataframe), 3000)
+test_index <- sentiment_values_dataframe$index[
+  !sentiment_values_dataframe$index %in% train_index]
+length(train_index)
 
-train_sentences <- lemmatized_texts[train_index]
-train_corpus <- VCorpus(VectorSource(train_sentences))
-test_sentences <- lemmatized_texts[-train_index]
-test_corpus <- VCorpus(VectorSource(test_sentences))
+#creazione di una dtm
+corpus <- VCorpus(VectorSource(paste(testi_lemmatizzati)))
+dtm <- DocumentTermMatrix(corpus)
 
 
-train_dtm <- DocumentTermMatrix(train_corpus)
-test_dtm <- DocumentTermMatrix(test_corpus)
+dtm$dimnames$Docs
 
-tm::inspect(test_dtm)
+dtm_train <- dtm[dtm$dimnames$Docs %in% train_index,]
+dtm_test <- dtm[dtm$dimnames$Docs %in% test_index,]
+dtm_train
 
 train_labels <- style[train_index]
 test_labels <- style[-train_index]
 
-classifier <- naiveBayes(as.matrix(train_dtm), train_labels)
+table(train_labels)
 
-predict(classifier, "Secondo me Salvini rappresenta la sola speranza per questo paese")
-predict(classifier, "Secondo me Salvini rappresenterebbe un pessimo premier orrendo")
+classifier <- naiveBayes(
+  as.matrix(dtm_train),
+  train_labels)
 
+pred <- predict(classifier, as.matrix(dtm_test))
+confusionMatrix(pred, as.factor(test_labels))
+
+dtm_train <- removeSparseTerms(dtm_train, 0.5)
+dtm_test <- removeSparseTerms(dtm_test, 0.5)
+
+classifier <- naiveBayes(
+  as.matrix(dtm_train),
+  train_labels)
+pred <- predict(classifier, as.matrix(dtm_test))
+confusionMatrix(pred, as.factor(test_labels))
 
 pos_ids <- data_annotato$id[data_annotato$Style == 'positive']
-pos_texts <- VCorpus(VectorSource(lemmatized_texts[pos_ids]))
+pos_texts <- VCorpus(VectorSource(testi_lemmatizzati[pos_ids]))
 wordcloud(pos_texts, max.words=50, scale=c(4,0.5))
 
 neg_ids <- data_annotato$id[data_annotato$Style == 'negative']
-neg_texts <- VCorpus(VectorSource(lemmatized_texts[neg_ids]))
+neg_texts <- VCorpus(VectorSource(testi_lemmatizzati[neg_ids]))
 wordcloud(neg_texts, max.words=50, scale=c(4,0.5))
-# **proviamo a creare un classificatore simile ma utilizzando i dati NRC / sentix**
+
+
