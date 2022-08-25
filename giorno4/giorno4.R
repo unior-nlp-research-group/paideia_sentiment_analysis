@@ -8,6 +8,7 @@ library(SnowballC)
 library(udpipe)
 library(stopwords)
 library(R.utils)
+library(data.table)
 library(tm)
 library(readxl)
 library(RTextTools)
@@ -18,26 +19,22 @@ sw <- stopwords("it")
 
 
 #ricarichiamo il nostro file annotato sintatticamente
-data <- read_csv('./annotazioni-sintattiche.csv')
+data <- read_csv('./materiali/annotazioni-sintattiche.csv')
 class(data)
-data <- as.data.frame(data)
+colnames(data)
+#data <- as.data.frame(data)
 
-lemmatized_texts <- c()
+testi_lemmatizzati <- c()
 for (i in unique(data$doc_id)) {
   tokens <- data[data$doc_id==i,]$lemma
   tokens <- tolower(tokens[!tokens %in% sw])
-  #text <- paste(tokens, collapse=' ')
-  lemmatized_texts <- c(lemmatized_texts, list(tokens))
+  testi_lemmatizzati <- c(testi_lemmatizzati, list(tokens))
 }
-lemmatized_texts[1]
+testi_lemmatizzati[1]
 
-data_annotato <- read_excel("../materiali/dataset.xlsx")
-data_annotato <- data.frame(my_data)
-
-
+data_annotato <- read_excel("./materiali/dataset.xlsx")
+data_annotato <- data.frame(data_annotato)
 testi <- data_annotato$Text
-
-
 
 data_annotato$Style[data_annotato$Style == "positivr"] <- "positive"
 data_annotato$Style <- ifelse(is.na(data_annotato$Style),
@@ -55,37 +52,39 @@ table(style)
 # http://valeriobasile.github.io/twita/downloads.html
 
 #importare lessico esterno
-nrc_table <- as.data.frame(
-  fread('./materiali/NRC-VAD-Lexicon-Aug2018Release/OneFilePerLanguage/Italian-it-NRC-VAD-Lexicon.txt'
+lessico <- as.data.frame(
+  fread('./materiali/sentix'
   )
 )
 
-head(nrc_table)
+head(lessico)
 
-#calcoliamo il valore per una frase esemplificativa
+#**andiamo a vedere i valori di una parola esemplificativa**
+
+#calcoliamo il valore per una frase
 
 frase <- c("Sono molto fiducioso per il futuro, anche se mi sento un po' preoccupato a causa degli ultimi avvenimenti")
 tokens_frase <- tokenize_words(frase)
 tokens_frase <- unlist(tokens_frase)
 tokens_frase <- tokens_frase[!tokens_frase %in% sw]
+lessico[is.element(lessico$V1, tokens_frase),]
 
-nrc_table[is.element(nrc_table$`Italian-it`, tokens_frase),]
-
-sentiment_values <- nrc_table[is.element(nrc_table$`Italian-it`, tokens_frase),]$Valence
+sentiment_values <- lessico[is.element(lessico$V1, tokens_frase),]$V6
 sentiment_values
 
 
 #**scriviamo una funzione per calcolare il valore di valenza data una frase**
 
-calcolare_sentiment_nrc <- function(frase_input){
+calcolare_sentiment <- function(frase_input){
   tokens <- unlist(tokenize_words(frase_input))
   tokens_clean <- tokens[!tokens %in% sw]
-  sentiment_values <- nrc_table[is.element(nrc_table$`Italian-it`, tokens_clean),]$Valence
+  sentiment_values <- lessico[is.element(lessico$V1, tokens_clean),]$V6
   return(mean(sentiment_values))
 }
-sentiment_values <- unlist(lapply(lemmatized_texts, calcolare_sentiment_nrc))
+sentiment_values <- unlist(lapply(lemmatized_texts, calcolare_sentiment))
 
-sentiment_values
+head(sentiment_values)
+#quanti NA ci sono?
 
 sentiment_values[is.na(sentiment_values)] <- 0
 
@@ -126,7 +125,7 @@ table(style)
 
 # creare split
 set.seed(12)
-train_index = sample(3792, 3000)
+train_index = sample(nrow(sentiment_values_dataframe), 3000)
 
 train_sentences <- lemmatized_texts[train_index]
 train_corpus <- VCorpus(VectorSource(train_sentences))
