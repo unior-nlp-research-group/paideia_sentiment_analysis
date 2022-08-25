@@ -134,15 +134,24 @@ anno_di_nascita <- c(1993, 1995, 1996)
 
 ?data.frame
 
+x <- 2
+data <- data.frame(
+  "names" = nomi,
+  "born in" = anno_di_nascita
+)
+
+data[2,]
+
+
 data <- data.frame(
   "persone" = nomi,
   "anno_di_nascita" = anno_di_nascita
 )
 
 nomi <- c("Mariapia", "Gennaro", "Andrea",
-          "Giacomo", "Nicola", "Maria Grazia","Luigi", "Dario")
+          "Giacomo", "Nicola", "Maria Grazia","Luigi", "Dario", "Vincenzo")
 paesi_di_nascita <- c("Napoli", "Acerra", "Catania", "Napoli",
-                      "Salerno", "Lecce", "Napoli", "Salerno")
+                      "Salerno", "Lecce", "Napoli", "Salerno", "Nocera Inf.")
 
 nomi[1]
 paesi_di_nascita[1]
@@ -156,16 +165,26 @@ dataframe <- data.frame(
 class(dataframe)
 nrow(dataframe)
 ncol(dataframe)
+dataframe
+colnames(data)
 
 names(dataframe)
+
 
 sum(dataframe$birth.places == "Napoli")
 
 
+
 dataframe
 
-genere_vettore <- c("F", "M", "M", "M", "M", "F", "M", "M")
+genere_vettore <- c("F", "M", "M", "M", "M", "F", "M", "M", "M")
 dataframe$genere <- genere_vettore
+
+
+sum(dataframe$birth.places == "Napoli" | dataframe$genere == "M")
+
+
+
 
 sum(
   dataframe$birth.places == "Napoli" &

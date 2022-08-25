@@ -30,7 +30,7 @@ sw <- stopwords("it")
 sw
 
 
-tokens <- tokens[!tokens %in% sw]
+tokens_full <- tokens[!tokens %in% sw]
 tokens_df <- data.frame(table(tokens))
 
 head(tokens_df[order(-tokens_df$Freq),],10)
@@ -41,40 +41,44 @@ head(my_data$V1)
 
 table(my_data$V1)
 
-recensioni_5 <- my_data$V3[my_data$V1==5] 
-recensioni_4 <- my_data$V3[my_data$V1==4] 
-recensioni_3 <- my_data$V3[my_data$V1==3] 
-recensioni_2 <- my_data$V3[my_data$V1==2] 
-recensioni_1 <- my_data$V3[my_data$V1==1] 
+
+getFreq <- function(rating){
+  recensioni <- my_data$V3[my_data$V1 == rating]
+  tokens <- unlist(tokenize_words(recensioni))
+  tokens <- factor(tokens, levels = unique(tokens_full))
+  table_tokens <- table(tokens)
+  df <- data.frame(table_tokens)
+  df <- df[order(-df$Freq),]
+  return(df)
+}
+ratings <- seq(1:5)
+freqs <-lapply(ratings, getFreq)
+
+total_freqs <- rbindlist(freqs, use.names = TRUE, idcol="rating")
+total_freqs[total_freqs$tokens == 'ottimo' & total_freqs$rating == 5]
+
+find_occ <- function(parola){
+  if (parola %in% tokens_full){
+  occ <- total_freqs[
+    total_freqs$tokens == parola]$Freq
+  return(occ)
+  }
+  else
+  {
+    return(c(0,0,0,0,0))
+  }
+}
+
+lista_parole <- c("bellissimo", "brutto", "batteria")
+x <- lapply(lista_parole, find_occ)
+x
+df3 <- data.frame("rating" = seq(1:5), "values" = x[[3]])
+ggplot(df3) + 
+  geom_bar(aes(x=rating, y=values), stat ="identity")
+
+total_freqs[total_freqs$tokens == "brutto"]
 
 
-## 2. tokenizziamo i corpora creati
-
-tokens_5 <- unlist(tokenize_words(recensioni_5))
-tokens_4 <- unlist(tokenize_words(recensioni_4))
-tokens_3 <- unlist(tokenize_words(recensioni_3))
-tokens_2 <- unlist(tokenize_words(recensioni_2))
-tokens_1 <- unlist(tokenize_words(recensioni_1))
-
-
-## 3. calcoliamo le frequenze
-
-freq_5 <- data.frame(table(tokens_5))
-freq_4 <- data.frame(table(tokens_4))
-freq_3 <- data.frame(table(tokens_3))
-freq_2 <- data.frame(table(tokens_2))
-freq_1 <- data.frame(table(tokens_1))
-
-freq_5 <- freq_5[order(-freq_5$Freq),]
-freq_4 <- freq_4[order(-freq_4$Freq),]
-freq_3 <- freq_3[order(-freq_3$Freq),]
-freq_2 <- freq_2[order(-freq_2$Freq),]
-freq_1 <- freq_1[order(-freq_1$Freq),]
-
-colnames(freq_5)
-freq_5 <- freq_5[!freq_5$tokens_5 %in% sw,]
-
-colnames(freq_1)
 freq_1 <- freq_1[!freq_1$tokens_1 %in% sw,]
 freq_3 <- freq_3[!freq_3$tokens_3 %in% sw,]
 
