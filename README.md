@@ -10,9 +10,9 @@ Il corso intende dotare gli studenti degli strumenti necessari per effettuare la
 
 - Giorno 1 - [Introduzione alla sentiment analysis e al trattamento automatico del linguaggio](https://docs.google.com/presentation/d/1uDcHnvbvM4QGHYkKPKRFSmy1EH5GI8tDRoWn_UMGC9w/edit?usp=sharing)
 - Giorno 2 - [Classificazione del sentiment e annotazione dei dati](https://docs.google.com/presentation/d/1csIlgzKOATb71MZoqy5aPS_W1O9uQ0qOZyi3mFbVc4Q/edit?usp=sharing)
-- Giorno 3 - [Risorse per la sentiment analysis]
-- Giorno 4 - [Metodi per la sentiment analysis]
-- Giorno 5 - [Valutazione e visualizzazione dei risultati]
+- Giorno 3 - [Risorse per la sentiment analysis](https://docs.google.com/presentation/d/1KdOaGQrgQxrFrHL_ko3QoDtX23ZAaKYqVMdqKFONZNs/edit?usp=sharing)
+- Giorno 4 - [Metodi per la sentiment analysis](https://docs.google.com/presentation/d/1BoKBxtU1WBrn-yZWOEauWx_gX4mPU7ZRNArQ-WV8Wkk/edit?usp=sharing)
+- Giorno 5 - [Valutazione e visualizzazione dei risultati](https://docs.google.com/presentation/d/1bFTM-nlnnrb5ra68ydM9kk_OnWh6bMofzdgAAzdL_sE/edit?usp=sharing)
 
 **Materiali di riferimento**
 - [Missen, M.M.S., Attik, M., Coustaty, M., Doucet, A., Faucher, C. (2015). SentiML++: An Extension of the SentiML Sentiment Annotation Scheme. In: Gandon, F., Guéret, C., Villata, S., Breslin, J., Faron-Zucker, C., Zimmermann, A. (eds) The Semantic Web: ESWC 2015 Satellite Events. ESWC 2015. Lecture Notes in Computer Science(), vol 9341. Springer, Cham](https://link.springer.com/chapter/10.1007/978-3-319-25639-9_18)
