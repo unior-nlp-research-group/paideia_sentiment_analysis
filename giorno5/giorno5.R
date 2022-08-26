@@ -2,7 +2,7 @@
 library(tidyverse)
 library(ggplot2)
 library(tokenizers)
-library(wordcloud)
+library(wordcloud2)
 library(RColorBrewer)
 library(SnowballC)
 library(udpipe)
@@ -13,43 +13,43 @@ library(tm)
 library(data.table)
 
 #ricarichiamo il nostro file di testo
-my_data <- read_excel("../materiali/dataset.xlsx")
+my_data <- read.csv("./materiali/dataset_fixed.csv")
 my_data <- data.frame(my_data)
-my_data$id <- seq(1:nrow(my_data))
+
+head(my_data[,1:2])
+
 
 
 sw <- stopwords("it")
 
+colnames(my_data)
 testi <- my_data$Text
-style <- my_data$Style
 
 #tokenizzazione ed eliminazione stop word
 tokens_full <- tokenize_words(testi)
 
-tokens_full <- tokens_full[!tokens_full %in% sw]
-
-
-my_data$Style[my_data$Style == "positivr"] = "positive"
-my_data$Style <- ifelse(is.na(my_data$Style),
-                        "not applicable",
-                        my_data$Style)
-
-
+style <- my_data$Style
 
 #visualizzazione dei risultati
 
 # wordcloud
 
-testi_positive <- my_data[my_data$Style=="positive",]$Text
-tokens_positive <- unlist(tokenize_words(testi_positive))
+tokens_positive <- tokens_full[my_data$Style=="positive"]
+tokens_positive <- unlist(tokens_positive)
 tokens_positive <- tokens_positive[!tokens_positive %in% sw]
 
+install.packages("wordcloud2")
+library(wordcloud2)
 set.seed(1234)
-wordcloud(words = tokens_positive, freq = as.data.frame(table(tokens_positive))$Freq, min.freq = 50,
-          max.words=1000, random.order=FALSE, 
-          colors=brewer.pal(8, "Dark2"),
-          scale=c(3.5,0.25))
-
+wordcloud(unique(tokens_positive),
+          freq = as.data.frame(table(tokens_positive))$Freq,
+          min.freq = 5,
+          max.words=500,
+          random.order=FALSE, 
+          colors=brewer.pal(8, "Accent"),
+          scale=c(2.5,0.25)
+          )
+?wordcloud
 #ggplot2
 
 my_data$style_num <- ifelse(
@@ -57,12 +57,28 @@ my_data$style_num <- ifelse(
   1,
   -1
 )
+
+unique(my_data$Style)
+table(my_data$Style)
+
 my_data$style_num
-ggplot(my_data)+
+
+ggplot(my_data) +
   geom_bar(aes(y=Style, fill=Style))
 
-ggplot(my_data, aes(id,0.5))+
-  geom_tile(aes(fill=style_num))
+freq_tokens <- data.frame(table(unlist(tokens_full)))
+freq_tokens <- freq_tokens[order(-freq_tokens$Freq),]
+colnames(freq_tokens)
+
+
+ggplot(head(freq_tokens)) +
+  geom_bar(aes(x=Var1, y=Freq), stat="identity")
+
+my_data$x <- rep(c(1:5), nrow(my_data)%/%5)
+my_data$y <- rep(c(1:5), nrow(my_data)%/%5)
+
+ggplot(my_data, aes(id))+
+  geom_raster(aes(fill=style_num))
 
 #**visualizziamo le valenze nel dataset estratte attraverso NRC**
 #*
