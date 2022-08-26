@@ -163,3 +163,55 @@ tokens_full[67]
 
 
 # **esaminare e visualizzare i risultati con un altro lessico/corpus**
+
+
+
+#### ** esperimenti dati fake news
+
+fake_news <- read_excel('./materiali/bufala-bufale.xlsx')
+real_news <- read_excel('./materiali/notizia-vera-bufale.xlsx')
+
+fake_news <- na.omit(fake_news)
+real_news <- na.omit(real_news)
+
+fake_news <- fake_news$Field2
+real_news <- real_news$Field2
+
+fake_news_tokens <- unlist(tokenize_words(lapply(fake_news, tolower)))
+real_news_tokens <- unlist(tokenize_words(lapply(real_news, tolower)))
+
+n_i <- length(fake_news_tokens)
+n_j <- length(real_news_tokens)
+alpha <- c(fake_news_tokens, real_news_tokens)
+n_alpha <- n_i + n_j
+
+francesco_totti <- function(parola){
+  parola_i <- sum(fake_news_tokens == parola)
+  parola_j <- sum(real_news_tokens == parola)
+  
+  parola_alpha <- sum(alpha == parola)
+  
+  num1 <- log((parola_i + parola_alpha)/(n_i + n_alpha - (parola_i + parola_alpha)))
+  num2 <- log((parola_j + parola_alpha) / (n_j + n_alpha - (parola_j + parola_alpha)))
+  
+  num <- num1 - num2
+  
+  denom <- 1 / (parola_i  + parola_alpha) + 1 / (parola_j + parola_alpha)
+  
+  log_odd <- num / sqrt(denom)
+  return(log_odd)
+}
+
+tokens_full <- unique(alpha)
+log_odds_full <- lapply(tokens_full, francesco_totti)
+
+
+df_logodds <- data.frame(
+  "token" = tokens_full,
+  "log_odds" = unlist(log_odds_full)
+)
+
+df_logodds <- df_logodds[order(-df_logodds$log_odds),]
+head(df_logodds, 20)
+
+tail(df_logodds, 20)

@@ -1,0 +1,18 @@
+---
+title: "prova_rmarkdown"
+author: "gnolano"
+date: '2022-08-26'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Riassunto corso Sentiment Analysis
+
+Questo è il codice esemplificativo per Rmarkdown
+```{r}
+x <- seq(from=0, to=100, by=3)
+hist(x)
+```
